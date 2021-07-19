@@ -23,3 +23,17 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.get('/', async () => {
   return { hello: 'world' }
 })
+
+// projects
+Route.get('/projects', 'ProjectsController.index')
+Route.get('/project/:id', 'ProjectsController.show')
+Route.post('/project', 'ProjectsController.store')
+Route.delete('/project/:id', 'ProjectsController.delete')
+
+// images
+Route.get('images', 'ImagesController.index')
+Route.get('image/:filename', 'ImagesController.show')
+Route.post('image/:id', 'ImagesController.store')
+
+//file system
+Route.get('file', 'FileSystemsController.index').as('fileshow')
