@@ -13,6 +13,9 @@ export default class Image extends BaseModel {
   @column()
   public size: number
 
+  @column()
+  public projectId: number
+
   @computed()
   public get url() {
     return `${Env.get('SET_URL')}/file?path=uploads/${this.filename}`

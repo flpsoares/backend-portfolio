@@ -8,6 +8,12 @@ export default class Images extends BaseSchema {
       table.increments('id')
       table.string('filename').notNullable()
       table.double('size').notNullable()
+      table
+        .integer('project_id')
+        .unsigned()
+        .references('projects.id')
+        .onDelete('CASCADE')
+        .onUpdate('CASCADE')
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

@@ -32,8 +32,8 @@ export default class ImagesController {
     await payload.image.move(Application.tmpPath('uploads'), { name: imageName })
 
     if (payload) {
-      await project.related('image').associate(await image)
-      await project.load('image')
+      await project.related('images').save(await image)
+      await project.load('images')
     }
 
     return project
