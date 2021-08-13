@@ -8,7 +8,7 @@ import { schema } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
 
 export default class ProjectsController {
-  public async index() {
+  public async index({ response }: HttpContextContract) {
     const data = Project.query().preload('images')
 
     return data
