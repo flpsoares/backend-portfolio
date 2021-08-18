@@ -23,6 +23,7 @@ import Route from '@ioc:Adonis/Core/Route'
 // projects
 Route.get('/projects', 'ProjectsController.index')
 Route.get('/project/:id', 'ProjectsController.show')
+Route.post('/project/:id', 'ProjectsController.storeTechnology')
 Route.post('/project', 'ProjectsController.store')
 Route.delete('/project/:id', 'ProjectsController.delete')
 
@@ -31,5 +32,9 @@ Route.get('images', 'ImagesController.index')
 Route.get('image/:filename', 'ImagesController.show')
 Route.post('image/:id', 'ImagesController.store')
 
-//file system
+// file system
 Route.get('file', 'FileSystemsController.index').as('fileshow')
+
+// technologies
+Route.get('technologies', 'TechnologiesController.index')
+Route.post('technology', 'TechnologiesController.store')

@@ -8,8 +8,8 @@ import { schema } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
 
 export default class ProjectsController {
-  public async index({ response }: HttpContextContract) {
-    const data = Project.query().preload('images')
+  public async index({}: HttpContextContract) {
+    const data = Project.query().preload('images').preload('technologies')
 
     return data
   }
@@ -18,6 +18,7 @@ export default class ProjectsController {
     const validatedData = await request.validate({
       schema: schema.create({
         name: schema.string(),
+        link: schema.string.optional(),
         description: schema.string(),
       }),
       messages: {
@@ -25,6 +26,8 @@ export default class ProjectsController {
         'description.required': 'description cannot be null',
       },
     })
+
+    const { technologies } = request.only(['technologies'])
 
     const validatedImage = schema.create({
       image: schema.file.optional({
@@ -38,9 +41,13 @@ export default class ProjectsController {
 
     const project = await Project.create(validatedData)
 
+    if (technologies && technologies.length > 0) {
+      await project.related('technologies').attach(technologies)
+      await project.load('technologies')
+    }
+
     if (payload.image) {
       const imageName = `${Date.now()}-${payload.filename}`
-
       const image = Image.create({ filename: imageName, size: payload.image.size })
 
       await payload.image.move(Application.tmpPath('uploads'), { name: imageName })
@@ -52,7 +59,20 @@ export default class ProjectsController {
     return project
   }
 
-  public async show({ params }: HttpContextContract) {
+  public async storeTechnology({ request, params }: HttpContextContract) {
+    const data = Project.findOrFail(params.id)
+
+    const { technologies } = request.only(['technologies'])
+
+    if (technologies && technologies.length > 0) {
+      await (await data).related('technologies').attach(technologies)
+      await (await data).load('technologies')
+    }
+
+    return data
+  }
+
+  public async show({}: HttpContextContract) {
     // const data = Project.findOrFail(params.id)
     // return data
 

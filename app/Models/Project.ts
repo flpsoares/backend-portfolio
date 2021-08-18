@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasMany, HasMany, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 
 import Image from './Image'
+import Technology from './Technology'
 
 export default class Project extends BaseModel {
   @column({ isPrimary: true })
@@ -9,6 +10,9 @@ export default class Project extends BaseModel {
 
   @column()
   public name: string
+
+  @column()
+  public link: string
 
   @column()
   public description: string
@@ -25,6 +29,16 @@ export default class Project extends BaseModel {
   @hasMany(() => Image)
   public images: HasMany<typeof Image>
 
-  // @hasMany(() => Image, { foreignKey: 'imageId', localKey: 'id' })
-  // public image: HasMany<typeof Image>
+  @manyToMany(() => Technology, {
+    localKey: 'id',
+    pivotForeignKey: 'project_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'technology_id',
+    pivotTable: 'project_technologies',
+    pivotTimestamps: {
+      createdAt: 'created_at',
+      updatedAt: 'updated_at',
+    },
+  })
+  public technologies: ManyToMany<typeof Technology>
 }
