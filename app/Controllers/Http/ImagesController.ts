@@ -14,29 +14,32 @@ export default class ImagesController {
 
   public async store({ request, params }: HttpContextContract) {
     const validatedImage = schema.create({
-      image: schema.file({
-        size: '2mb',
-        extnames: ['jpg', 'png', 'jpeg'],
-      }),
-      filename: schema.string(),
+      image: schema.array().members(
+        schema.file({
+          size: '2mb',
+          extnames: ['jpg', 'png', 'jpeg'],
+        })
+      ),
     })
-
-    const payload = await request.validate({ schema: validatedImage })
 
     const project = await Project.findOrFail(params.id)
 
-    const imageName = `${Date.now()}-${payload.filename}`
+    const payload = await request.validate({ schema: validatedImage })
 
-    const image = Image.create({ filename: imageName, size: payload.image.size })
+    if (payload.image) {
+      payload.image.map(async (images) => {
+        const imageName = `${Date.now()}-${images.clientName}`
 
-    await payload.image.move(Application.tmpPath('uploads'), { name: imageName })
+        const image = Image.create({ filename: imageName, size: images.size })
 
-    if (payload) {
-      await project.related('images').save(await image)
-      await project.load('images')
+        await images.move(Application.tmpPath('uploads'), { name: imageName })
+
+        project.related('images').save(await image)
+        project.load('images')
+      })
     }
 
-    return project
+    return payload
   }
 
   public async show({ params, response }: HttpContextContract) {

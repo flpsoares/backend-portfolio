@@ -15,6 +15,8 @@ export default class ProjectsController {
   }
 
   public async store({ request }: HttpContextContract) {
+    // const { technologies, ...data } = request.only(['name', 'link', 'description', 'technologies'])
+
     const validatedData = await request.validate({
       schema: schema.create({
         name: schema.string(),
@@ -22,22 +24,29 @@ export default class ProjectsController {
         description: schema.string(),
       }),
       messages: {
-        'name.required': 'name cannot be null',
-        'description.required': 'description cannot be null',
+        'name.required': 'Name cannot be null',
+        'description.required': 'Description cannot be null',
       },
     })
 
     const { technologies } = request.only(['technologies'])
 
-    const validatedImage = schema.create({
-      image: schema.file.optional({
-        size: '2mb',
-        extnames: ['jpg', 'png', 'jpeg'],
-      }),
-      filename: schema.string.optional(),
-    })
+    // const validatedImage = schema.create({
+    //   image: schema.file.optional({
+    //     size: '2mb',
+    //     extnames: ['jpg', 'png', 'jpeg'],
+    //   }),
+    //   filename: schema.string.optional(),
+    // })
 
-    const payload = await request.validate({ schema: validatedImage })
+    const validatedImage = schema.create({
+      image: schema.array().members(
+        schema.file.optional({
+          size: '2mb',
+          extnames: ['jpg', 'png', 'jpeg'],
+        })
+      ),
+    })
 
     const project = await Project.create(validatedData)
 
@@ -46,17 +55,22 @@ export default class ProjectsController {
       await project.load('technologies')
     }
 
-    if (payload.image) {
-      const imageName = `${Date.now()}-${payload.filename}`
-      const image = Image.create({ filename: imageName, size: payload.image.size })
+    const payload = await request.validate({ schema: validatedImage })
 
-      await payload.image.move(Application.tmpPath('uploads'), { name: imageName })
+    // if (payload.image) {
+    //   payload.image.map(async (images) => {
+    //     const imageName = `${Date.now()}-${images?.clientName}`
 
-      project.related('images').save(await image)
-      project.load('images')
-    }
+    //     const image = Image.create({ filename: imageName, size: images?.size })
 
-    return project
+    //     await images?.move(Application.tmpPath('uploads'), { name: imageName })
+
+    //     project.related('images').save(await image)
+    //     project.load('images')
+    //   })
+    // }
+
+    // return project
   }
 
   public async storeTechnology({ request, params }: HttpContextContract) {

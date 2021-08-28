@@ -8,7 +8,7 @@ export default class Projects extends BaseSchema {
       table.increments('id').primary()
       table.string('name').notNullable()
       table.string('link')
-      table.text('description')
+      table.text('description').notNullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })
