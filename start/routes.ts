@@ -24,7 +24,8 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.get('/projects', 'ProjectsController.index')
 Route.get('/project/:id', 'ProjectsController.show')
 Route.post('/project/:id', 'ProjectsController.storeTechnology')
-Route.post('/project', 'ProjectsController.store')
+Route.post('/projectImage', 'ProjectsController.storeWithImage')
+Route.post('/projectLink', 'ProjectsController.storeWithLink')
 Route.delete('/project/:id', 'ProjectsController.delete')
 
 // images

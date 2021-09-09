@@ -14,13 +14,10 @@ export default class ProjectsController {
     return data
   }
 
-  public async store({ request }: HttpContextContract) {
-    // const { technologies, ...data } = request.only(['name', 'link', 'description', 'technologies'])
-
+  public async storeWithImage({ request }: HttpContextContract) {
     const validatedData = await request.validate({
       schema: schema.create({
         name: schema.string(),
-        link: schema.string.optional(),
         description: schema.string(),
       }),
       messages: {
@@ -30,14 +27,6 @@ export default class ProjectsController {
     })
 
     const { technologies } = request.only(['technologies'])
-
-    // const validatedImage = schema.create({
-    //   image: schema.file.optional({
-    //     size: '2mb',
-    //     extnames: ['jpg', 'png', 'jpeg'],
-    //   }),
-    //   filename: schema.string.optional(),
-    // })
 
     const validatedImage = schema.create({
       image: schema.array().members(
@@ -57,20 +46,45 @@ export default class ProjectsController {
 
     const payload = await request.validate({ schema: validatedImage })
 
-    // if (payload.image) {
-    //   payload.image.map(async (images) => {
-    //     const imageName = `${Date.now()}-${images?.clientName}`
+    if (payload.image) {
+      payload.image.map(async (images) => {
+        const imageName = `${Date.now()}-${images?.clientName}`
 
-    //     const image = Image.create({ filename: imageName, size: images?.size })
+        const image = Image.create({ filename: imageName, size: images?.size })
 
-    //     await images?.move(Application.tmpPath('uploads'), { name: imageName })
+        await images?.move(Application.tmpPath('uploads'), { name: imageName })
 
-    //     project.related('images').save(await image)
-    //     project.load('images')
-    //   })
-    // }
+        project.related('images').save(await image)
+        project.load('images')
+      })
+    }
 
-    // return project
+    return project
+  }
+
+  public async storeWithLink({ request }: HttpContextContract) {
+    const validatedData = await request.validate({
+      schema: schema.create({
+        name: schema.string(),
+        link: schema.string.optional(),
+        description: schema.string(),
+      }),
+      messages: {
+        'name.required': 'Name cannot be null',
+        'description.required': 'Description cannot be null',
+      },
+    })
+
+    const { technologies } = request.only(['technologies'])
+
+    const project = await Project.create(validatedData)
+
+    if (technologies && technologies.length > 0) {
+      await project.related('technologies').attach(technologies)
+      await project.load('technologies')
+    }
+
+    return project
   }
 
   public async storeTechnology({ request, params }: HttpContextContract) {
@@ -86,18 +100,13 @@ export default class ProjectsController {
     return data
   }
 
-  public async show({}: HttpContextContract) {
-    // const data = Project.findOrFail(params.id)
-    // return data
+  public async show({ params }: HttpContextContract) {
+    const projectId = params.id
 
-    // const data = await Database.rawQuery('select * from projects where id = ?', [params.id])
+    const data = await Project.findByOrFail('id', projectId)
 
-    const data = await Database.from('projects').join(
-      'projects.id',
-      'images.project_id',
-      '=',
-      'projects.id'
-    )
+    await data.load('images')
+    await data.load('technologies')
 
     return data
   }
