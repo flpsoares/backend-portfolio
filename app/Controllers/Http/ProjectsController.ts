@@ -2,14 +2,14 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Project from 'App/Models/Project'
 import Image from 'App/Models/Image'
+import Technology from 'App/Models/Technology'
 
-import Database from '@ioc:Adonis/Lucid/Database'
 import { schema } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
 
 export default class ProjectsController {
   public async index({}: HttpContextContract) {
-    const data = Project.query().preload('images').preload('technologies')
+    const data = Project.query().preload('images').preload('technologies').orderBy('id')
 
     return data
   }
@@ -105,10 +105,33 @@ export default class ProjectsController {
 
     const data = await Project.findByOrFail('id', projectId)
 
-    await data.load('images')
-    await data.load('technologies')
+    await data.load((loader) => {
+      loader.load('images').load('technologies')
+    })
 
     return data
+  }
+
+  public async update({ request, params }: HttpContextContract) {
+    const data = request.all()
+
+    const project = await Project.findByOrFail('id', params.id)
+
+    await project
+      .related('technologies')
+      .detach()
+      .then(() => {
+        project.related('technologies').attach(data.technologies)
+      })
+
+    await project.load((loader) => {
+      loader.load('images').load('technologies')
+    })
+
+    project.merge(data)
+    await project.save()
+
+    return project
   }
 
   public async delete({ params, response }: HttpContextContract) {
