@@ -2,7 +2,6 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
 import Project from 'App/Models/Project'
 import Image from 'App/Models/Image'
-import Technology from 'App/Models/Technology'
 
 import { schema } from '@ioc:Adonis/Core/Validator'
 import Application from '@ioc:Adonis/Core/Application'
