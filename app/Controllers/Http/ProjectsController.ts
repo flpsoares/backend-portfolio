@@ -51,7 +51,7 @@ export default class ProjectsController {
 
         const image = Image.create({ filename: imageName, size: images?.size })
 
-        await images?.move(Application.tmpPath('uploads'), { name: imageName })
+        await images?.move(Application.publicPath('uploads'), { name: imageName })
 
         project.related('images').save(await image)
         project.load('images')

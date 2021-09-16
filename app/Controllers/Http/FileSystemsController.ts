@@ -6,7 +6,7 @@ export default class FileSystemsController {
   public async index({ request, response }: HttpContextContract) {
     const { path } = request.all()
 
-    const reader = fs.createReadStream(Application.tmpPath(path))
+    const reader = fs.createReadStream(Application.publicPath(path))
     response.header('content-type', 'image/webp')
     return response.stream(reader)
   }
