@@ -5,11 +5,19 @@ import Application from '@ioc:Adonis/Core/Application'
 import Image from 'App/Models/Image'
 import Project from 'App/Models/Project'
 
+import * as uuid from 'uuid'
+
 export default class ImagesController {
   public async index() {
     const data = Image.all()
 
     return data
+  }
+
+  public async listAllByProject({ params }: HttpContextContract) {
+    const images = await Image.query().where('project_id', '=', params.project_id)
+
+    return images
   }
 
   public async store({ request, params }: HttpContextContract) {
@@ -28,13 +36,13 @@ export default class ImagesController {
 
     if (payload.image) {
       payload.image.map(async (images) => {
-        const imageName = `${Date.now()}-${images.clientName}`
+        const imageName = `${uuid.v4()}-${images?.clientName}`
 
-        const image = Image.create({ filename: imageName, size: images.size })
+        const image = await Image.create({ filename: imageName, size: images.size })
 
         await images.move(Application.publicPath('uploads'), { name: imageName })
 
-        project.related('images').save(await image)
+        project.related('images').save(image)
         project.load('images')
       })
     }
@@ -44,5 +52,17 @@ export default class ImagesController {
 
   public async show({ params, response }: HttpContextContract) {
     return response.attachment(Application.tmpPath('uploads', params.filename))
+  }
+
+  public async delete({ params, response }: HttpContextContract) {
+    const images = await Image.query().where('project_id', '=', params.project_id)
+
+    images.map(async (image) => {
+      if (image.id.toString() === params.id) {
+        await image.delete()
+      }
+    })
+
+    return response.json({ message: 'Image deleted successfully' })
   }
 }

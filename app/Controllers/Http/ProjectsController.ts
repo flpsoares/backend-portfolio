@@ -1,5 +1,7 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
+import * as uuid from 'uuid'
+
 import Project from 'App/Models/Project'
 import Image from 'App/Models/Image'
 
@@ -47,13 +49,13 @@ export default class ProjectsController {
 
     if (payload.image) {
       payload.image.map(async (images) => {
-        const imageName = `${Date.now()}-${images?.clientName}`
+        const imageName = `${uuid.v4()}-${images?.clientName}`
 
-        const image = Image.create({ filename: imageName, size: images?.size })
+        const image = await Image.create({ filename: imageName, size: images?.size })
 
         await images?.move(Application.publicPath('uploads'), { name: imageName })
 
-        project.related('images').save(await image)
+        project.related('images').save(image)
         project.load('images')
       })
     }
@@ -122,6 +124,34 @@ export default class ProjectsController {
       .then(() => {
         project.related('technologies').attach(data.technologies)
       })
+
+    if (!data.link) {
+      const validatedImage = schema.create({
+        image: schema.array().members(
+          schema.file.optional({
+            size: '2mb',
+            extnames: ['jpg', 'png', 'jpeg'],
+          })
+        ),
+      })
+
+      // await project.related('images').query().delete()
+
+      const payload = await request.validate({ schema: validatedImage })
+
+      if (payload.image) {
+        payload.image.map(async (images) => {
+          const imageName = `${uuid.v4()}-${images?.clientName}`
+
+          const image = await Image.create({ filename: imageName, size: images?.size })
+
+          await images?.move(Application.publicPath('uploads'), { name: imageName })
+
+          project.related('images').save(image)
+          project.load('images')
+        })
+      }
+    }
 
     await project.load((loader) => {
       loader.load('images').load('technologies')
