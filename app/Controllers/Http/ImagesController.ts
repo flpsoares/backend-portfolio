@@ -54,6 +54,12 @@ export default class ImagesController {
     return response.attachment(Application.tmpPath('uploads', params.filename))
   }
 
+  public async updateOrder({ request }: HttpContextContract) {
+    const { items } = request.all()
+
+    return await Image.updateOrCreateMany(['filename'], items)
+  }
+
   public async delete({ params, response }: HttpContextContract) {
     const images = await Image.query().where('project_id', '=', params.project_id)
 

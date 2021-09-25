@@ -38,6 +38,7 @@ Route.get('images', 'ImagesController.index')
 Route.get('images/:project_id', 'ImagesController.listAllByProject')
 Route.post('image/:id', 'ImagesController.store')
 Route.delete('image/:project_id/:id', 'ImagesController.delete')
+Route.put('updateOrder', 'ImagesController.updateOrder')
 
 // file system
 Route.get('file', 'FileSystemsController.index').as('fileshow')

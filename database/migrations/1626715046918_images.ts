@@ -6,8 +6,9 @@ export default class Images extends BaseSchema {
   public async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.string('filename')
+      table.string('filename').notNullable()
       table.double('size').notNullable()
+      table.integer('order').nullable()
       table
         .integer('project_id')
         .unsigned()

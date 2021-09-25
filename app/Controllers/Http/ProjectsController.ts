@@ -125,32 +125,28 @@ export default class ProjectsController {
         project.related('technologies').attach(data.technologies)
       })
 
-    if (!data.link) {
-      const validatedImage = schema.create({
-        image: schema.array().members(
-          schema.file.optional({
-            size: '2mb',
-            extnames: ['jpg', 'png', 'jpeg'],
-          })
-        ),
-      })
-
-      // await project.related('images').query().delete()
-
-      const payload = await request.validate({ schema: validatedImage })
-
-      if (payload.image) {
-        payload.image.map(async (images) => {
-          const imageName = `${uuid.v4()}-${images?.clientName}`
-
-          const image = await Image.create({ filename: imageName, size: images?.size })
-
-          await images?.move(Application.publicPath('uploads'), { name: imageName })
-
-          project.related('images').save(image)
-          project.load('images')
+    const validatedImage = schema.create({
+      image: schema.array.optional().members(
+        schema.file.optional({
+          size: '2mb',
+          extnames: ['jpg', 'png', 'jpeg'],
         })
-      }
+      ),
+    })
+
+    const payload = await request.validate({ schema: validatedImage })
+
+    if (payload.image) {
+      payload.image.map(async (images) => {
+        const imageName = `${uuid.v4()}-${images?.clientName}`
+
+        const image = await Image.create({ filename: imageName, size: images?.size })
+
+        await images?.move(Application.publicPath('uploads'), { name: imageName })
+
+        project.related('images').save(image)
+        project.load('images')
+      })
     }
 
     await project.load((loader) => {
